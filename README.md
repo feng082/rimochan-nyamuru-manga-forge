@@ -13,6 +13,16 @@ OMNY（漫画ネームYAML・絶対座標でコマ割り）
 完成原稿 page1.png, page2.png, ...
 ```
 
+たとえば同梱のサンプルネーム [`examples/sample-2page.omny.yaml`](examples/sample-2page.omny.yaml) を焼くと、この2枚が出てきます：
+
+<p align="center">
+  <img src="examples/output-sample/page1.png" alt="サンプル出力 1ページ目：なんでもない日のコンビニ帰り" width="49%">
+  <img src="examples/output-sample/page2.png" alt="サンプル出力 2ページ目：雨上がりの空に虹" width="49%">
+</p>
+
+リファレンス画像は使っていません。ネームの YAML（コマ割り座標・フキダシの形・背景詳細度・`materials.note` の文章）だけからこの原稿になります。
+1ページ目ラストの「ヒキ」を2ページ目冒頭の大ゴマで受けるメクリ構成も、ネームで指定したとおりです。
+
 ---
 
 ## これは何で、何ではないか
@@ -53,7 +63,7 @@ cd rimochan-nyamuru-manga-forge
 ```
 
 `out/sample-2page/page1.png` と `page2.png` ができます。
-**実際の出力例**が [`examples/output-sample/`](examples/output-sample/) にあります（リファレンス画像なし・`materials.note` の文章だけで生成したものです）。
+出来上がりの例は**冒頭に貼った2枚**（[`examples/output-sample/`](examples/output-sample/)）がそのまま実物です。
 10ページの作品なら10〜20分ほどかかります（1枚ずつ順番に描くので）。
 
 自分のキャラで描きたいときは立ち絵を渡します（最大3枚推奨）:
