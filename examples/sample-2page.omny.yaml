@@ -1,0 +1,183 @@
+# ============================================================
+# 『サンプル：いいもの見たのだ』
+# Open Manga Name YAML (OMNY) / Nyamuru Data Model (NDM) v10.3
+# ------------------------------------------------------------
+#   タイトル    : サンプル：いいもの見たのだ
+#   作者名      : your-name（meta.author を書き換えて使ってください）
+#   作風・雰囲気: 平凡な一日の帰り道の、ちいさなご褒美
+#   画風        : 標準（カラー漫画）
+#   ページ数    : 2
+# ------------------------------------------------------------
+# 🧍v10.3 人物センター原則を全コマで適用
+# 📐 ページ間でコマ割りパターンを変えている（p1=3段 / p2=メクリ受けドン）
+# ============================================================
+
+manga:
+  schema_name: "Nyamuru Data Model"
+  schema_version: 10.2
+  meta:
+    title: "サンプル：いいもの見たのだ"
+    author: "your-name"
+    format: "カラー漫画"
+    page_count: 2
+    reading_direction: "right-to-left"
+    text_orientation: "vertical"
+    font: "アンチック体"
+    style_notes:
+      - "雨上がりの夕方の光。ぬれた路面の反射をきれいに描く"
+      - "コンビニは架空の店。実在チェーンの看板・ロゴ・配色をまねない"
+
+  setting:
+    location: "夕方の住宅街と、架空のコンビニ「ハミングマート」"
+    time: "雨上がりの夕方"
+    weather: "雨上がり。西日が差しはじめている"
+    background:
+      - "コンビニの外観（白い壁に黄色とオレンジの看板）"
+      - "住宅街の歩道、水たまり、ぬれた路面"
+      - "雨上がりの広い空"
+    props:
+      - "レジ袋"
+      - "カップアイス"
+      - "水たまり"
+
+  characters:
+    - name: "ミオ"
+      role: >-
+        茶髪ボブ・パーカー姿の女の子。学校帰りにコンビニへ寄った。
+        今日は特にいいことも悪いこともない、ふつうの一日だった
+
+  materials:
+    - key: "ミオ"
+      type: "character"
+      keywords: ["ミオ", "立ち絵", "私服", "屋外"]
+      note: "茶髪ボブ・半袖パーカー・ショートパンツ。元気で表情ゆたか"
+    - key: "ハミングマート"
+      type: "background"
+      keywords: ["コンビニ", "ハミングマート", "外観", "背景"]
+      note: >-
+        架空のコンビニ。白い外観に黄色とオレンジのやわらかい看板。
+        実在チェーンのロゴ・配色は使わない
+    - key: "雨上がりの空"
+      type: "background"
+      keywords: ["空", "虹", "夕方", "背景"]
+      note: "雨上がりの夕方の広い空。大きな虹がかかる"
+
+  pages:
+    - page: 1
+      panels:
+        - id: 1
+          shape: {type: "rect", x: 10, y: 10, w: 190, h: 92}
+          bg: 2
+          action: >-
+            雨上がりの夕方。コンビニ「ハミングマート」の前で、ミオがレジ袋を
+            提げて店から出てきたところ。路面がぬれて光っている。コマ中央にミオ
+          assets: ["ミオ", "ハミングマート"]
+          figures:
+            - name: "ミオ"
+              bbox: {x: 70, y: 22, w: 70, h: 76}
+              anchor: "center"
+              size: "waist-up"
+          bubbles:
+            - text: "なんでもない日の、帰り道。"
+              shape: "caption"
+              bbox: {x: 140, y: 16, w: 54, h: 20}
+            - speaker: "ミオ"
+              text: "アイス買っちゃったのだ"
+              shape: "normal"
+              bbox: {x: 16, y: 24, w: 46, h: 38}
+        - id: 2
+          shape: {type: "rect", x: 10, y: 108, w: 190, h: 80}
+          bg: 1
+          action: >-
+            歩道を歩きながら、レジ袋の中をのぞくミオ。水たまりをひょいと
+            またぐ。のんびりした歩き。コマ中央にミオ
+          assets: ["ミオ"]
+          figures:
+            - name: "ミオ"
+              bbox: {x: 72, y: 116, w: 66, h: 66}
+              anchor: "center"
+              size: "waist-up"
+          bubbles:
+            - speaker: "ミオ"
+              text: "今日は宿題やって、お風呂入って、寝るだけなのだ"
+              shape: "normal"
+              bbox: {x: 148, y: 114, w: 46, h: 44}
+            - text: "ぴちゃっ"
+              shape: "handwritten"
+              bbox: {x: 18, y: 166, w: 34, h: 14}
+        - id: 3
+          shape: {type: "rect", x: 10, y: 194, w: 190, h: 93}
+          bg: 1
+          action: >-
+            ふと足が止まる。空の方を見上げて「ん？」という顔。
+            視線の先に何があるかは、このコマでは描かない（次ページで見せる）。
+            ページ末のヒキ。コマ中央にミオ
+          assets: ["ミオ"]
+          figures:
+            - name: "ミオ"
+              bbox: {x: 72, y: 202, w: 66, h: 80}
+              anchor: "center"
+              size: "waist-up"
+          bubbles:
+            - speaker: "ミオ"
+              text: "…あれ？"
+              shape: "normal"
+              bbox: {x: 16, y: 200, w: 42, h: 36}
+
+    - page: 2
+      panels:
+        - id: 1
+          shape: {type: "rect", x: 10, y: 10, w: 190, h: 182}
+          bg: 2
+          action: >-
+            メクリの大ゴマ。雨上がりの夕方の空に、大きな虹がかかっている。
+            画面の主役は空と虹。ミオは左下に小さめに、見上げる姿で置く
+          assets: ["ミオ", "雨上がりの空"]
+          figures:
+            - name: "ミオ"
+              bbox: {x: 20, y: 112, w: 58, h: 76}
+              anchor: "bottom-left"
+              size: "waist-up"
+          bubbles:
+            - speaker: "ミオ"
+              text: "虹なのだ！"
+              shape: "flash"
+              bbox: {x: 144, y: 124, w: 48, h: 40}
+        - id: 2
+          shape: {type: "rect", x: 104, y: 198, w: 96, h: 89}
+          bg: 0
+          action: >-
+            ミオのうれしそうな顔のアップ。背景は感動の金〜桃のグラデーションに
+            ちいさなキラキラ。コマのど真ん中に顔
+          assets: ["ミオ"]
+          figures:
+            - name: "ミオ"
+              bbox: {x: 118, y: 206, w: 66, h: 74}
+              anchor: "center"
+              size: "face"
+          bubbles:
+            - speaker: "ミオ"
+              text: "雨、やんでてよかったのだ"
+              shape: "thought"
+              bbox: {x: 108, y: 258, w: 40, h: 24}
+              monologue: true
+        - id: 3
+          shape: {type: "rect", x: 10, y: 198, w: 89, h: 89}
+          bg: 1
+          action: >-
+            また歩き出すミオ。うしろの空にはまだ虹。足どりが少し軽い。
+            コマ中央にミオ
+          assets: ["ミオ"]
+          figures:
+            - name: "ミオ"
+              bbox: {x: 22, y: 206, w: 64, h: 66}
+              anchor: "center"
+              size: "bust-up"
+          bubbles:
+            - speaker: "ミオ"
+              text: "いいもの見たのだ"
+              shape: "normal"
+              bbox: {x: 60, y: 202, w: 36, h: 34}
+            - text: "アイスは、ちょっと溶けていたのだ。"
+              shape: "caption"
+              bbox: {x: 14, y: 262, w: 60, h: 20}
