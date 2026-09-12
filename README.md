@@ -1,6 +1,6 @@
 # rimochan-nyamuru-manga-forge 🐹🐱🔨
 
-**用自然语言提出请求，即可产出漫画原稿**——这是一个面向 Claude Code 的技能。
+**用自然语言提出请求，即可产出漫画原稿**——这是一个面向 Codex 的原生技能。
 
 它将分镜设计、作画、回收与质检整合为一条流水线。
 只要写下“请画一部 5 页、讲述这样一个故事的漫画”，就能得到
@@ -8,7 +8,7 @@ page1.png … page5.png。
 
 ~~~
 你的一句话
-   ↓  Claude Code 设计分镜
+   ↓  Codex 设计分镜
 OMNY（漫画分镜 YAML，以绝对坐标定义分格）
    ↓  连同 OMAY（作画与版式规则）交给图像生成 AI
 完成原稿 page1.png、page2.png、……
@@ -32,8 +32,8 @@ materials.note 的文本，就能生成这份原稿。
 
 - ✅ 用**结构化数据编写漫画分镜，并将其渲染为原稿**的流水线
 - ✅ 页数、分格、气泡形状、背景细节都能作为**数据**指定
-- ✅ 在同一轮对话中连续渲染各页，因此**角色设计和画风能跨页保持一致**
-- ❌ 它不是图像生成模型本身（作画交由 codex / ChatGPT 图像生成）
+- ✅ 在同一任务中连续渲染各页，因此**角色设计和画风能跨页保持一致**
+- ❌ 它不是图像生成模型本身（作画交由 Codex 的图像生成能力）
 - ❌ 它不是一键产出杰作的魔法；**分镜质量会直接反映在成稿中**
 
 如果希望人工编辑分镜，可以使用姊妹项目
@@ -47,21 +47,37 @@ materials.note 的文本，就能生成这份原稿。
 
 | 要求 | 说明 |
 |---|---|
-| [Claude Code](https://claude.com/claude-code) | 作为技能载入 |
-| codex CLI | 负责作画；需登录支持图像生成功能的方案 |
-| bash | Windows 可使用 Git Bash（本项目也在该环境开发） |
+| [Codex](https://openai.com/codex/) | 默认运行环境；负责分镜编排、图像生成与质检 |
+| codex CLI（可选） | 仅用于命令行批量渲染；需登录支持图像生成功能的方案 |
+| bash（仅 CLI 批处理模式） | Windows 可使用 Git Bash（本项目也在该环境开发） |
 | 参考图（可选） | 角色立绘；没有也可由 AI 根据描述设计 |
 
 安装说明请参阅 [docs/setup.md](docs/setup.md)。
 
 ---
 
-## 5 分钟试用
+## 5 分钟试用：Codex 原生模式
+
+将仓库安装为 Codex 技能：
 
 ~~~bash
 git clone https://github.com/feng082/rimochan-nyamuru-manga-forge
 cd rimochan-nyamuru-manga-forge
+cp -r . ~/.codex/skills/manga-forge
+~~~
 
+在新建的 Codex 任务中直接提出需求：
+
+> 画一部 2 页漫画：雨后的傍晚，女孩在便利店门口看见彩虹。结尾温暖一点。
+
+Codex 会设计 OMNY 分镜、逐页调用图像生成、检查页面并交付结果。
+如果你只想得到或调整分镜，也可以明确说“只生成 OMNY，不要画图”。
+
+## 可选：命令行批量模式
+
+需要将页面固定保存为本地 `out/` PNG 时，使用随附脚本：
+
+~~~bash
 # 渲染随附的 2 页示例分镜
 ./scripts/forge.sh -n examples/sample-2page.omny.yaml
 ~~~
@@ -87,33 +103,39 @@ cd rimochan-nyamuru-manga-forge
 
 ---
 
-## 作为 Claude Code 技能使用
+## 作为 Codex 技能使用
 
-这才是本项目的主要使用方式：**从编写分镜开始就可以交给它。**
+这是本项目的默认方式：**从编写分镜开始就可以交给 Codex。**
 
 ~~~bash
 # 面向当前用户全局使用
-cp -r . ~/.claude/skills/manga-forge
-
-# 或仅用于某个项目
-cp -r . <your-project>/.claude/skills/manga-forge
+cp -r . ~/.codex/skills/manga-forge
 ~~~
 
-之后直接用自然语言请求 Claude Code：
+Windows PowerShell 可将技能目录复制到：
+
+~~~powershell
+Copy-Item -Recurse . "$env:USERPROFILE\.codex\skills\manga-forge"
+~~~
+
+之后在新的 Codex 任务中直接用自然语言请求：
 
 > 请画一部 5 页漫画。主题是“搬家那天，旧书桌抽屉里发现了以前的信”。
 > 结尾请安静收束。角色请使用 chars/ 中的立绘。
 
-Claude Code 会依次：
-① 编写故事，② 用 OMNY 设计分格，③ 通过 forge.sh 渲染，
-④ 查看全部页面并质检，⑤ 交付到你指定的位置。
+Codex 会依次：
+① 编写故事，② 用 OMNY 设计分格，③ 用原生图像生成能力逐页渲染，
+④ 查看全部页面并质检，⑤ 交付成品。
+
+如果需要可复现的本地 PNG 批处理，再改用 `scripts/forge.sh`。该脚本是兼容模式，
+通过 codex CLI 生成页面并自动收集至 `out/<作品名>/`。
 
 ---
 
 ## 仓库内容
 
 ~~~
-SKILL.md                    Claude Code 技能本体（会被读取）
+SKILL.md                    Codex 原生技能本体（会被读取）
 omay/standard.omay.yaml     作画、演出规则和版式规范（OMAY）
 omay/styles.md              画风调色板（12 组提示词）
 prompts/ndm-v10.md          分镜生成提示词（OMNY 的完整写法规范）
@@ -121,14 +143,14 @@ scripts/forge.sh            将 OMNY 渲染为原稿 PNG 的驱动脚本
 scripts/collect.sh          按页码回收生成图像
 scripts/deliver.sh          将通过质检的原稿交付到指定位置
 examples/                   示例分镜
-docs/setup.md               codex CLI 的准备说明
+docs/setup.md               Codex 原生模式与 CLI 批处理模式的准备说明
 docs/characters.md          注册自己的角色与背景
-docs/pitfalls.md            ⚠️ 常见陷阱全集（先读可节省数天时间）
+docs/pitfalls.md            ⚠️ Codex CLI 批处理的常见陷阱全集
 ~~~
 
-### 📌 请先阅读 docs/pitfalls.md
+### 📌 使用 CLI 批处理前请阅读 docs/pitfalls.md
 
-让 AI 画漫画时，人们往往会在同一些地方跌倒：
+使用 `forge.sh` 让 AI 批量画漫画时，人们往往会在同一些地方跌倒：
 “只做声明却没有生成图像”“resume 混入另一部作品”
 “画面没有落在 bbox 指定位置”——**这些问题都已经实际遇到并记录在案。**
 
@@ -152,7 +174,7 @@ docs/pitfalls.md            ⚠️ 常见陷阱全集（先读可节省数天时
 
 ## 名称由来
 
-`rimochan` 是 Claude Code 代理**理莫酱**的名字；她每天用这条流水线持续绘制漫画。
+`rimochan` 是 Codex 代理**理莫酱**的名字；她每天用这条流水线持续绘制漫画。
 `nyamuru`（Nyamuru）是数据模型的名称，吉祥物则是猫妖精**Nyamurutan**。
 
 这里记录的各种陷阱，都是理莫酱亲自踩过的坑。
@@ -173,7 +195,7 @@ docs/pitfalls.md            ⚠️ 常见陷阱全集（先读可节省数天时
 本技能的 OMNY / OMAY / 工作流**上游**是
 [**Nyamuru Manga Name Studio**](https://github.com/sa-san10/nyamuru-manga-name-studio)，
 即用于在浏览器中编辑 OMNY 的 PWA。规范和提示词在 Studio 的 src/content/ 中维护；
-本仓库则将其快照实现为“Claude Code 技能 + bash 流水线”。
+本仓库则将其快照实现为“Codex 原生技能 + 可选 bash 批处理流水线”。
 
 ### 文件对应表
 
@@ -181,7 +203,7 @@ docs/pitfalls.md            ⚠️ 常见陷阱全集（先读可节省数天时
 |---|---|---|
 | omay/standard.omay.yaml | standard.omay.yaml | OMAY（作画、演出规则与版式规范） |
 | prompts/ndm-v10.md | nyamuru-manga-generation-prompt-v10.md（规范主体为 nyamuru-data-model-v10.md） | 分镜生成提示词，即 OMNY 的写法 |
-| SKILL.md + scripts/ | agent-manga-generation-workflow.md | 面向代理的生成工作流 |
+| SKILL.md + scripts/ | agent-manga-generation-workflow.md | 面向 Codex 的生成工作流 |
 | examples/sample-2page.omny.yaml | sample.omny.yaml | 示例分镜（各自内容独立） |
 
 ### 本 forge 额外增加的内容
