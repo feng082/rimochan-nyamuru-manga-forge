@@ -1,206 +1,213 @@
 # rimochan-nyamuru-manga-forge 🐹🐱🔨
 
-**自然言語で頼むと、漫画の原稿が出てくる**——Claude Code 用のスキルです。
+**用自然语言提出请求，即可产出漫画原稿**——这是一个面向 Claude Code 的技能。
 
-ネームの設計から作画・回収・検品までを一本のパイプラインにまとめました。
-「5ページで、こういう話の漫画を描いて」と書けば、`page1.png ... page5.png` が出てきます。
+它将分镜设计、作画、回收与质检整合为一条流水线。
+只要写下“请画一部 5 页、讲述这样一个故事的漫画”，就能得到
+page1.png … page5.png。
 
-```
-あなたの一言
-   ↓  Claude Code がネームを設計
-OMNY（漫画ネームYAML・絶対座標でコマ割り）
-   ↓  OMAY（作画・レイアウト規則）と一緒に画像生成AIへ
-完成原稿 page1.png, page2.png, ...
-```
+~~~
+你的一句话
+   ↓  Claude Code 设计分镜
+OMNY（漫画分镜 YAML，以绝对坐标定义分格）
+   ↓  连同 OMAY（作画与版式规则）交给图像生成 AI
+完成原稿 page1.png、page2.png、……
+~~~
 
-たとえば同梱のサンプルネーム [`examples/sample-2page.omny.yaml`](examples/sample-2page.omny.yaml) を焼くと、この2枚が出てきます：
+例如，渲染随附的示例分镜
+[examples/sample-2page.omny.yaml](examples/sample-2page.omny.yaml)，即可得到以下两页：
 
 <p align="center">
-  <img src="examples/output-sample/page1.png" alt="サンプル出力 1ページ目：なんでもない日のコンビニ帰り" width="49%">
-  <img src="examples/output-sample/page2.png" alt="サンプル出力 2ページ目：雨上がりの空に虹" width="49%">
+  <img src="examples/output-sample/page1.png" alt="示例输出第 1 页：平常一天的便利店归途" width="49%">
+  <img src="examples/output-sample/page2.png" alt="示例输出第 2 页：雨后天空中的彩虹" width="49%">
 </p>
 
-リファレンス画像は使っていません。ネームの YAML（コマ割り座標・フキダシの形・背景詳細度・`materials.note` の文章）だけからこの原稿になります。
-1ページ目ラストの「ヒキ」を2ページ目冒頭の大ゴマで受けるメクリ構成も、ネームで指定したとおりです。
+无需参考图。仅凭分镜 YAML 中的分格坐标、气泡形状、背景细节等级和
+materials.note 的文本，就能生成这份原稿。
+第 1 页末尾的“悬念”由第 2 页开头的大格承接，翻页结构也完全遵循分镜设定。
 
 ---
 
-## これは何で、何ではないか
+## 它是什么，又不是什么
 
-- ✅ **ネームを構造化データで書き、それを原稿に焼く**ためのパイプラインです
-- ✅ ページ数・コマ割り・フキダシの形・背景の描き込み量まで**データとして指定**できます
-- ✅ 1つの会話でページを焼き続けるので、**キャラデザと画風がページ間で一貫**します
-- ❌ 画像生成モデルそのものではありません（作画は codex / ChatGPT image に投げます）
-- ❌ ワンクリックで傑作が出る魔法ではありません。**ネームの良さがそのまま出ます**
+- ✅ 用**结构化数据编写漫画分镜，并将其渲染为原稿**的流水线
+- ✅ 页数、分格、气泡形状、背景细节都能作为**数据**指定
+- ✅ 在同一轮对话中连续渲染各页，因此**角色设计和画风能跨页保持一致**
+- ❌ 它不是图像生成模型本身（作画交由 codex / ChatGPT 图像生成）
+- ❌ 它不是一键产出杰作的魔法；**分镜质量会直接反映在成稿中**
 
-ネームを人間が編集したい場合は、姉妹プロジェクトの
-[**Nyamuru Manga Name Studio**](https://github.com/sa-san10/nyamuru-manga-name-studio)（ブラウザで動くネーム編集PWA）を使えます。
-同じ OMNY 形式なので、Studio で整えたネームをそのままこの forge に流せます。
+如果希望人工编辑分镜，可以使用姊妹项目
+[**Nyamuru Manga Name Studio**](https://github.com/sa-san10/nyamuru-manga-name-studio)
+（可在浏览器运行的分镜编辑 PWA）。两者使用相同的 OMNY 格式，
+可将 Studio 中整理好的分镜直接交给本 forge。
 
 ---
 
-## 必要なもの
+## 所需环境
 
-| 要件 | 備考 |
+| 要求 | 说明 |
 |---|---|
-| [Claude Code](https://claude.com/claude-code) | スキルとして読み込みます |
-| `codex` CLI | 作画を担当。画像生成が使えるプランでログイン済みであること |
-| bash | Windows は Git Bash でOK（実際にそこで開発しています） |
-| リファレンス画像（任意） | キャラの立ち絵。無くてもAIが想像で描きます |
+| [Claude Code](https://claude.com/claude-code) | 作为技能载入 |
+| codex CLI | 负责作画；需登录支持图像生成功能的方案 |
+| bash | Windows 可使用 Git Bash（本项目也在该环境开发） |
+| 参考图（可选） | 角色立绘；没有也可由 AI 根据描述设计 |
 
-セットアップは [`docs/setup.md`](docs/setup.md) を見てください。
+安装说明请参阅 [docs/setup.md](docs/setup.md)。
 
 ---
 
-## 5分で試す
+## 5 分钟试用
 
-```bash
-git clone https://github.com/sa-san10/rimochan-nyamuru-manga-forge
+~~~bash
+git clone https://github.com/feng082/rimochan-nyamuru-manga-forge
 cd rimochan-nyamuru-manga-forge
 
-# 同梱のサンプルネーム（2ページ）を焼いてみる
+# 渲染随附的 2 页示例分镜
 ./scripts/forge.sh -n examples/sample-2page.omny.yaml
-```
+~~~
 
-`out/sample-2page/page1.png` と `page2.png` ができます。
-出来上がりの例は**冒頭に貼った2枚**（[`examples/output-sample/`](examples/output-sample/)）がそのまま実物です。
-10ページの作品なら10〜20分ほどかかります（1枚ずつ順番に描くので）。
+将生成 out/sample-2page/page1.png 和 page2.png。
+成品示例就是本页开头展示的两张图（位于
+[examples/output-sample/](examples/output-sample/)）。
+10 页作品通常需要约 10～20 分钟，因为页面会逐张顺序绘制。
 
-自分のキャラで描きたいときは立ち絵を渡します（最大3枚推奨）:
+如需用自己的角色作画，请提供角色立绘（建议最多 3 张）：
 
-```bash
+~~~bash
 ./scripts/forge.sh -n my.omny.yaml \
   -r chars/hero.png -r chars/rival.png \
-  -m "画風はクレヨン画。主人公は必ず赤いマフラーを付けている"
-```
+  -m "画风为蜡笔画；主角始终佩戴红色围巾"
+~~~
 
-できた原稿は好きな場所へ納品できます（ネームも一緒に残すと資産になります）:
+完成的原稿可交付到任意位置（建议同时保留分镜，作为可复用资产）：
 
-```bash
+~~~bash
 ./scripts/deliver.sh -f out/my -t ~/Desktop/my -n my.omny.yaml
-```
+~~~
 
 ---
 
-## Claude Code のスキルとして使う
+## 作为 Claude Code 技能使用
 
-こちらが本来の使い方です。**ネームを書くところから任せられます。**
+这才是本项目的主要使用方式：**从编写分镜开始就可以交给它。**
 
-```bash
-# ユーザー全体で使う場合
+~~~bash
+# 面向当前用户全局使用
 cp -r . ~/.claude/skills/manga-forge
 
-# または特定のプロジェクトだけで使う場合
+# 或仅用于某个项目
 cp -r . <your-project>/.claude/skills/manga-forge
-```
+~~~
 
-あとは Claude Code に自然言語で頼みます:
+之后直接用自然语言请求 Claude Code：
 
-> 5ページの漫画を描いて。テーマは「引っ越しの日に、古い机の引き出しから昔の手紙が出てくる話」。
-> 最後は静かに終わらせて。キャラは `chars/` の立ち絵を使って。
+> 请画一部 5 页漫画。主题是“搬家那天，旧书桌抽屉里发现了以前的信”。
+> 结尾请安静收束。角色请使用 chars/ 中的立绘。
 
-Claude Code が
-①ストーリーを書き ②OMNY にコマ割りを設計し ③`forge.sh` で焼き ④全ページを見て検品し
-⑤希望の場所へ納品する——ところまでやります。
-
----
-
-## リポジトリの中身
-
-```
-SKILL.md                    Claude Code スキル本体（これが読まれます）
-omay/standard.omay.yaml     作画・演出ルールとレイアウト仕様（OMAY）
-omay/styles.md              画風パレット（12種の呪文）
-prompts/ndm-v10.md          ネーム生成プロンプト（OMNYの書き方の全仕様）
-scripts/forge.sh            OMNY → 原稿PNG を焼くドライバ
-scripts/collect.sh          生成画像をページ順に回収
-scripts/deliver.sh          検品済みの原稿を希望の場所へ納品
-examples/                   サンプルネーム
-docs/setup.md               codex CLI の準備
-docs/characters.md          自分のキャラ・背景を登録する
-docs/pitfalls.md            ⚠️ ハマりどころ全集（先に読むと数日助かります）
-```
-
-### 📌 `docs/pitfalls.md` を先に読んでください
-
-AIに漫画を描かせると、たいてい同じ場所で転びます。
-「宣言だけして画像を作らずに終わる」「resume が別作品と混ざる」
-「bbox どおりの位置に絵が来ない」——**全部踏んだので書いてあります**。
+Claude Code 会依次：
+① 编写故事，② 用 OMNY 设计分格，③ 通过 forge.sh 渲染，
+④ 查看全部页面并质检，⑤ 交付到你指定的位置。
 
 ---
 
-## OMNY / OMAY について
+## 仓库内容
 
-- **OMNY**（Open Manga Name YAML）— 漫画のネームを表すデータ形式。ページ・コマの絶対座標・フキダシの形と位置・人物の配置・背景の詳細度を持ちます
-- **OMAY**（Open Manga Artwork YAML）— それを「どう描くか」の規則。作画AIに渡す共通ルールです
+~~~
+SKILL.md                    Claude Code 技能本体（会被读取）
+omay/standard.omay.yaml     作画、演出规则和版式规范（OMAY）
+omay/styles.md              画风调色板（12 组提示词）
+prompts/ndm-v10.md          分镜生成提示词（OMNY 的完整写法规范）
+scripts/forge.sh            将 OMNY 渲染为原稿 PNG 的驱动脚本
+scripts/collect.sh          按页码回收生成图像
+scripts/deliver.sh          将通过质检的原稿交付到指定位置
+examples/                   示例分镜
+docs/setup.md               codex CLI 的准备说明
+docs/characters.md          注册自己的角色与背景
+docs/pitfalls.md            ⚠️ 常见陷阱全集（先读可节省数天时间）
+~~~
 
-ネームが構造化データになっていると、原稿を焼くだけでなく
-**コマに挙動をつける／別の画風で刷り直す／編集ツールで開く**といった後工程が全部つながります。
+### 📌 请先阅读 docs/pitfalls.md
 
-このリポジトリ内では [`prompts/ndm-v10.md`](prompts/ndm-v10.md) と
-[`omay/standard.omay.yaml`](omay/standard.omay.yaml) が正です。
-仕様の大本（上流）は [Nyamuru Manga Name Studio](https://github.com/sa-san10/nyamuru-manga-name-studio) にあります（詳しくは下の「大本リポジトリとの関係」）。
-
----
-
-## 名前について
-
-`rimochan` は、このパイプラインを毎日使って漫画を描き続けている
-Claude Code エージェント **リモちゃん** の名前です。
-`nyamuru`（にゃむる）はデータモデルの名前で、マスコットは猫の妖精 **にゃむるたん**。
-
-ここに書かれているハマりどころは、全部リモちゃんが実際に転んだ記録です。
-
----
-
-## ライセンス
-
-- コード・ドキュメント・OMAY / OMNY 仕様: **MIT License**（[LICENSE](LICENSE)）
-- キャラクター「にゃむるたん」: **CC BY 4.0** — 作者 sa-san10
-
-作画に使う画像生成サービスの利用規約は、各自でご確認ください。
+让 AI 画漫画时，人们往往会在同一些地方跌倒：
+“只做声明却没有生成图像”“resume 混入另一部作品”
+“画面没有落在 bbox 指定位置”——**这些问题都已经实际遇到并记录在案。**
 
 ---
 
-## 大本リポジトリとの関係（Nyamuru Manga Name Studio）
+## 关于 OMNY / OMAY
 
-このスキルの OMNY / OMAY / ワークフローの**大本（上流）**は
-[**Nyamuru Manga Name Studio**](https://github.com/sa-san10/nyamuru-manga-name-studio)（ブラウザで OMNY を編集する PWA）です。
-仕様書とプロンプトは Studio の `src/content/` で管理されており、このリポジトリはそのスナップショットを
-「Claude Code スキル＋bash パイプライン」として実装し直したものです。
+- **OMNY**（Open Manga Name YAML）：描述漫画分镜的数据格式，包含页面、格子的绝对坐标、气泡形状和位置、人物布局及背景细节。
+- **OMAY**（Open Manga Artwork YAML）：规定“如何绘制”这些分镜的规则，是交给作画 AI 的通用指令。
 
-### ファイルの対応表
+分镜结构化后，不仅可以渲染成原稿，也能继续用于
+**让格子动起来、以另一种画风重新印制、在编辑工具中打开**等后续环节。
 
-| このリポジトリ | Studio 側（`src/content/`） | 中身 |
+本仓库以 [prompts/ndm-v10.md](prompts/ndm-v10.md) 和
+[omay/standard.omay.yaml](omay/standard.omay.yaml) 为准。
+上游规范位于
+[Nyamuru Manga Name Studio](https://github.com/sa-san10/nyamuru-manga-name-studio)
+（详见下方“与上游仓库的关系”）。
+
+---
+
+## 名称由来
+
+`rimochan` 是 Claude Code 代理**理莫酱**的名字；她每天用这条流水线持续绘制漫画。
+`nyamuru`（Nyamuru）是数据模型的名称，吉祥物则是猫妖精**Nyamurutan**。
+
+这里记录的各种陷阱，都是理莫酱亲自踩过的坑。
+
+---
+
+## 许可证
+
+- 代码、文档与 OMAY / OMNY 规范：**MIT License**（[LICENSE](LICENSE)）
+- 角色“Nyamurutan”：**CC BY 4.0** — 作者 sa-san10
+
+请自行确认用于作画的图像生成服务之使用条款。
+
+---
+
+## 与上游仓库的关系（Nyamuru Manga Name Studio）
+
+本技能的 OMNY / OMAY / 工作流**上游**是
+[**Nyamuru Manga Name Studio**](https://github.com/sa-san10/nyamuru-manga-name-studio)，
+即用于在浏览器中编辑 OMNY 的 PWA。规范和提示词在 Studio 的 src/content/ 中维护；
+本仓库则将其快照实现为“Claude Code 技能 + bash 流水线”。
+
+### 文件对应表
+
+| 本仓库 | Studio 侧（src/content/） | 内容 |
 |---|---|---|
-| `omay/standard.omay.yaml` | `standard.omay.yaml` | OMAY（作画・演出ルールとレイアウト仕様） |
-| `prompts/ndm-v10.md` | `nyamuru-manga-generation-prompt-v10.md`（仕様本体は `nyamuru-data-model-v10.md`） | ネーム生成プロンプト＝OMNYの書き方 |
-| `SKILL.md` ＋ `scripts/` | `agent-manga-generation-workflow.md` | エージェント用の生成ワークフロー |
-| `examples/sample-2page.omny.yaml` | `sample.omny.yaml` | サンプルネーム（それぞれ独自の内容） |
+| omay/standard.omay.yaml | standard.omay.yaml | OMAY（作画、演出规则与版式规范） |
+| prompts/ndm-v10.md | nyamuru-manga-generation-prompt-v10.md（规范主体为 nyamuru-data-model-v10.md） | 分镜生成提示词，即 OMNY 的写法 |
+| SKILL.md + scripts/ | agent-manga-generation-workflow.md | 面向代理的生成工作流 |
+| examples/sample-2page.omny.yaml | sample.omny.yaml | 示例分镜（各自内容独立） |
 
-### この forge 側で足したもの
+### 本 forge 额外增加的内容
 
-Studio のワークフローを実運用（毎日焼く）に耐えるようにした部分が、このリポジトリの独自分です：
+本仓库针对日常高频渲染而强化了 Studio 工作流，新增内容包括：
 
-- **成果物強制ブロック**（宣言だけで終わる問題への対策。`docs/pitfalls.md` 罠1）
-- **page1=新規セッション／page2以降=resume** によるページ間一貫性の担保（罠3・4）
-- **ログのUUIDからの画像回収**（`collect.sh`。罠7）
-- ハマりどころ全集（`docs/pitfalls.md`）と画風パレット（`omay/styles.md`）
+- **成果物强制区块**（防止只声明不生成；见 docs/pitfalls.md 的陷阱 1）
+- 以 **page1 = 新会话、page2 起 = resume** 保证跨页一致性（陷阱 3、4）
+- 从日志 UUID **回收图像**（collect.sh；陷阱 7）
+- 常见陷阱全集（docs/pitfalls.md）与画风调色板（omay/styles.md）
 
-なお検品の考え方が少し違います：Studio のワークフローはフキダシ内テキストの校正を人間の後工程に委ねますが、
-このスキルでは**エージェントが全ページを目で見て検品**し、気になるページだけ再生成する運用です。
+二者的质检理念略有不同：Studio 的工作流将气泡内文字的校对交给人工后处理；
+本技能则要求**代理逐页目视检查**，仅重新生成有问题的页面。
 
-### 最新の仕様・ワークフローの取り込み方
+### 如何同步最新规范和工作流
 
-Studio 側で仕様が更新されたら、次の手順でこちらへ取り込みます：
+若 Studio 端规范有更新，请按以下步骤同步：
 
-1. Studio の `src/content/` の差分を見る（OMAY の `spec_version` / OMNY の `schema_version` が上がっていたら要注意）
-2. `standard.omay.yaml` を `omay/standard.omay.yaml` へ上書きコピー
-3. 生成プロンプトの差分を `prompts/ndm-v10.md` へ反映する（§D の出力方法など **forge 固有の追記を消さないよう、丸ごと上書きではなく差分マージ**で）
-4. `spec_version` と `schema_version` の一致を確認する（bg やマージン等の数値はプロンプトと OMAY の両方に意図的に二重掲載されているので、**必ず両方揃えて**直す）
-5. サンプルを焼き直して検品する: `./scripts/forge.sh -n examples/sample-2page.omny.yaml`
+1. 查看 Studio 的 src/content/ 差异（若 OMAY 的 spec_version 或 OMNY 的 schema_version 升级，需特别注意）。
+2. 将 standard.omay.yaml 覆盖复制到 omay/standard.omay.yaml。
+3. 将生成提示词差异合并至 prompts/ndm-v10.md（§D 等 **forge 专有补充不能删除，因此不要整文件覆盖，要做差异合并**）。
+4. 确认 spec_version 与 schema_version 一致（背景、边距等数字在提示词和 OMAY 中均刻意重复出现，**两处必须同步修改**）。
+5. 重新渲染示例并质检：
+   `./scripts/forge.sh -n examples/sample-2page.omny.yaml`
 
-両リポジトリとも同じ作者（sa-san10）の MIT ライセンスなので、仕様ファイルの相互コピーに特別な手続きは要りません
-（キャラクター「にゃむるたん」のみ CC BY 4.0）。
+两个仓库均由同一作者 sa-san10 以 MIT 许可证发布，因此可以直接复制规范文件，
+无需额外手续（角色“Nyamurutan”除外，其采用 CC BY 4.0）。
 
-Studio で人の手で詰めたネームは、同じ OMNY 形式なのでそのままこの forge に流せます。
+在 Studio 中手工打磨的分镜使用相同 OMNY 格式，能够直接交给本 forge。

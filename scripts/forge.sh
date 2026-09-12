@@ -1,36 +1,36 @@
 #!/usr/bin/env bash
 # ============================================================
 # rimochan-nyamuru-manga-forge / forge.sh
-#   OMNY（漫画ネームYAML）→ 完成原稿PNG を焼くドライバ
+#   将 OMNY（漫画分镜 YAML）渲染为完成的原稿 PNG 的驱动脚本
 #   Copyright (c) 2026 sa-san10 / MIT License
 # ============================================================
 #
-# 使い方:
-#   ./scripts/forge.sh -n <OMNYファイル> [オプション]
+# 用法：
+#   ./scripts/forge.sh -n <OMNY 文件> [选项]
 #
-# 必須:
-#   -n, --omny <path>      OMNYファイル（ネームデータ）
+# 必填：
+#   -n, --omny <path>      OMNY 文件（分镜数据）
 #
-# よく使うオプション:
-#   -p, --pages <N>        ページ数（省略時はOMNYの meta.page_count を読む）
-#   -o, --out <dir>        出力先ディレクトリ（既定: ./out/<OMNY名>）
-#   -a, --omay <path>      OMAYファイル（既定: omay/standard.omay.yaml）
-#   -r, --ref <path>       リファレンス画像。複数回指定可（最大3枚推奨）
-#   -m, --memo <text>      作品固有の追加指示（画風・気をつけてほしいこと等）
-#   -h, --help             このヘルプ
+# 常用选项：
+#   -p, --pages <N>        页数（省略时读取 OMNY 的 meta.page_count）
+#   -o, --out <dir>        输出目录（默认：./out/<OMNY 名称>）
+#   -a, --omay <path>      OMAY 文件（默认：omay/standard.omay.yaml）
+#   -r, --ref <path>       参考图；可重复指定（建议最多 3 张）
+#   -m, --memo <text>      作品专属补充指令（画风、注意事项等）
+#   -h, --help             显示本帮助
 #
-# 例:
+# 示例：
 #   ./scripts/forge.sh -n my.omny.yaml -r chars/hero.png -r chars/rival.png \
-#       -m "画風はクレヨン画。1コマ目の背景は夕焼けにしてほしい"
+#       -m "画风为蜡笔画；第 1 格背景请使用夕阳"
 #
-# 前提:
-#   - codex CLI がインストール済み & ログイン済み（画像生成が使えるプラン）
-#   - `codex --version` が通ること
+# 前提：
+#   - 已安装并登录 codex CLI（所用方案支持图像生成）
+#   - `codex --version` 能正常执行
 #
-# 仕組み（詳しくは docs/pitfalls.md）:
-#   page1 は `codex exec -i <refs>` で新規セッションを立ち上げ、
-#   page2 以降は `codex exec resume --last` で同じ会話を継続する。
-#   同じ会話を使うことでキャラデザ・背景・画風がページ間で一貫する。
+# 工作方式（详情见 docs/pitfalls.md）：
+#   page1 通过 `codex exec -i <refs>` 创建新会话；
+#   page2 起通过 `codex exec resume --last` 继续同一会话。
+#   复用会话使角色设计、背景与画风可跨页保持一致。
 # ============================================================
 set -uo pipefail
 
@@ -51,91 +51,91 @@ while [[ $# -gt 0 ]]; do
 done
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-[[ -z "$OMNY" ]] && { echo "ERROR: -n <OMNYファイル> は必須なのだ" >&2; exit 1; }
-[[ -f "$OMNY" ]] || { echo "ERROR: OMNYが見つからない: $OMNY" >&2; exit 1; }
+[[ -z "$OMNY" ]] && { echo "错误：必须提供 -n <OMNY 文件>" >&2; exit 1; }
+[[ -f "$OMNY" ]] || { echo "错误：找不到 OMNY：$OMNY" >&2; exit 1; }
 [[ -z "$OMAY" ]] && OMAY="$HERE/omay/standard.omay.yaml"
-[[ -f "$OMAY" ]] || { echo "ERROR: OMAYが見つからない: $OMAY" >&2; exit 1; }
+[[ -f "$OMAY" ]] || { echo "错误：找不到 OMAY：$OMAY" >&2; exit 1; }
 
 BASENAME="$(basename "$OMNY")"; BASENAME="${BASENAME%%.*}"
 [[ -z "$OUT" ]] && OUT="$HERE/out/$BASENAME"
 mkdir -p "$OUT"
 LOG="$OUT/forge.log"; : > "$LOG"
 
-# ページ数を OMNY から推定（-p 未指定時）
+# 未指定 -p 时，从 OMNY 推断页数
 if [[ -z "$PAGES" ]]; then
   PAGES=$(grep -oE 'page_count:[[:space:]]*[0-9]+' "$OMNY" | head -1 | grep -oE '[0-9]+' || true)
   [[ -z "$PAGES" ]] && PAGES=$(grep -cE '^[[:space:]]*-[[:space:]]*page:[[:space:]]*[0-9]+' "$OMNY" || true)
-  [[ -z "$PAGES" || "$PAGES" == "0" ]] && { echo "ERROR: ページ数が判定できないのだ。-p で指定してほしいのだ" >&2; exit 1; }
+  [[ -z "$PAGES" || "$PAGES" == "0" ]] && { echo "错误：无法判断页数；请通过 -p 指定" >&2; exit 1; }
 fi
 
-command -v codex >/dev/null || { echo "ERROR: codex CLI が見つからないのだ。docs/setup.md を見てほしいのだ" >&2; exit 1; }
+command -v codex >/dev/null || { echo "错误：找不到 codex CLI；请查看 docs/setup.md" >&2; exit 1; }
 
 REF_ARGS=()
 for r in "${REFS[@]:-}"; do
   [[ -z "$r" ]] && continue
-  [[ -f "$r" ]] || { echo "WARN: リファレンスが見つからないので飛ばすのだ: $r" >&2; continue; }
+  [[ -f "$r" ]] || { echo "警告：找不到参考图，已跳过：$r" >&2; continue; }
   REF_ARGS+=(-i "$r")
 done
 
 OMAY_BODY="$(cat "$OMAY")"
 OMNY_BODY="$(cat "$OMNY")"
 
-echo "=== forge start: $BASENAME / ${PAGES}ページ / refs=${#REF_ARGS[@]} ===" | tee -a "$LOG"
+echo "=== 开始渲染：$BASENAME / ${PAGES} 页 / refs=${#REF_ARGS[@]} ===" | tee -a "$LOG"
 
 # ------------------------------------------------------------
-# 🚨 成果物強制ブロック（これが無いと宣言だけで終わる。docs/pitfalls.md 参照）
+# 🚨 强制产出区块（没有它，模型可能只做声明。参见 docs/pitfalls.md）
 # ------------------------------------------------------------
 forcing_block() {
   cat <<EOS
-🚨**いま画像生成ツールを実際に呼び出して、${1}の画像を1枚生成してほしい**。
-計画や宣言だけで終わらせず、**生成したPNGの絶対パスを最後に1行で出力**してほしい。
-ドキュメントは読まなくていい。
+🚨**请立即实际调用图像生成工具，生成一张 ${1} 的图片**。
+不要只做计划或声明；请在最后单独输出一行生成 PNG 的绝对路径。
+不需要阅读文档。
 EOS
 }
 
 # ------------------------------------------------------------
-# page1: 新規セッション（OMAY全文 + OMNY全文 + リファレンスを渡す）
+# page1：新会话（传入完整 OMAY、完整 OMNY 与参考图）
 # ------------------------------------------------------------
 echo "[$(date +%H:%M:%S)] ===== page1 =====" >> "$LOG"
 cat <<PROMPT | codex exec "${REF_ARGS[@]}" >> "$LOG" 2>&1
 $(forcing_block "page1")
 
-これから**全${PAGES}ページの漫画**を1ページずつ描いてほしい。
-**2つのファイル**を渡す。①OMAY（作画・演出ルールとレイアウト仕様）②OMNY（ネームデータ）。
-**OMAYのルールに従ってOMNYの内容を描く**こと。
+现在请逐页绘制一部**共 ${PAGES} 页的漫画**。
+我会提供**两份文件**：① OMAY（作画、演出与版式规则），② OMNY（分镜数据）。
+**请遵循 OMAY 的规则绘制 OMNY 中的内容。**
 
-【進め方】
-- 全${PAGES}ページを「1ページ=1枚の独立した画像」として描く。1枚にまとめる/見開きは禁止
-- **まず page1 だけ描く**。そのあと続けて page2 以降を依頼する
-- セリフは OMNY 記載どおりの日本語で、はっきり読みやすく
-- **フキダシには尻尾を付けて、先端を話者の口元へ向ける**（caption・handwritten は尻尾なし）
-- ページヘッダーは左上に作品タイトル、右上に「1/${PAGES}」
+【执行方式】
+- 将全部 ${PAGES} 页绘制为“每页 1 张独立图像”；禁止拼成一张图或跨页展开。
+- **先只绘制 page1**，随后再继续请求 page2 及以后页面。
+- 所有台词必须准确使用 OMNY 中写明的简体中文，并确保清晰易读。
+- **气泡必须带尾巴，尾端指向说话者嘴边**（caption 和 handwritten 不带尾巴）。
+- 页眉左上角写作品标题，右上角写“1/${PAGES}”。
 
-${MEMO:+【この作品について】
+${MEMO:+【本作品补充说明】
 $MEMO
 }
-===== ① OMAY（作画・レイアウト規則） =====
+===== ① OMAY（作画与版式规则） =====
 $OMAY_BODY
 
-===== ② OMNY（ネームデータ・全${PAGES}ページ） =====
+===== ② OMNY（分镜数据；共 ${PAGES} 页） =====
 $OMNY_BODY
 PROMPT
-echo "[$(date +%H:%M:%S)] page1 done" >> "$LOG"
+echo "[$(date +%H:%M:%S)] page1 完成" >> "$LOG"
 
 # ------------------------------------------------------------
-# page2..N: 同じ会話を resume して継続（キャラデザ・画風の一貫性のため）
+# page2…N：resume 同一会话，保证角色设计与画风一致
 # ------------------------------------------------------------
 for ((p=2; p<=PAGES; p++)); do
   echo "[$(date +%H:%M:%S)] ===== page$p =====" >> "$LOG"
   codex exec resume --last "$(forcing_block "page$p")
 
-つづき。さっき渡したOMAYのルールとOMNYのネームどおりに **page${p} を1枚だけ**描いてほしい。
-キャラクターデザイン・背景の内装・画風・小物のデザインは、**前のページと必ず一貫**させること。
-**フキダシの尻尾は話者の口元へ**向ける。ヘッダーは右上に「${p}/${PAGES}」。
+继续。请按照刚才提供的 OMAY 规则和 OMNY 分镜，**只绘制一张 page${p}**。
+角色设计、背景内装、画风和小物设计都必须**与之前页面保持一致**。
+**气泡尾巴必须指向说话者的嘴边**；页眉右上角写“${p}/${PAGES}”。
 ${MEMO:+
-（作品メモ再掲）$MEMO}" >> "$LOG" 2>&1
-  echo "[$(date +%H:%M:%S)] page$p done" >> "$LOG"
+（再次列出作品备注）$MEMO}" >> "$LOG" 2>&1
+  echo "[$(date +%H:%M:%S)] page$p 完成" >> "$LOG"
 done
 
-echo "=== forge done. 回収するのだ ===" | tee -a "$LOG"
+echo "=== 渲染完成，开始回收 ===" | tee -a "$LOG"
 "$HERE/scripts/collect.sh" --log "$LOG" --out "$OUT" --pages "$PAGES"

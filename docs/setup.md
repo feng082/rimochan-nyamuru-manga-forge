@@ -1,74 +1,78 @@
-# セットアップ
+# 安装配置
 
 ## 1. codex CLI
 
-作画は [codex CLI](https://developers.openai.com/codex/cli) が担当します。**画像生成が使えるプラン**でログインしてください。
+作画由 [codex CLI](https://developers.openai.com/codex/cli) 完成。
+请登录**支持图像生成功能的方案**。
 
-```bash
-codex --version   # 通ればOK
-codex login       # ブラウザが開きます
-```
+~~~bash
+codex --version   # 能正常执行即可
+codex login       # 会打开浏览器
+~~~
 
-動作確認（1枚だけ生成してみる）:
+验证安装（仅生成一张图片）：
 
-```bash
+~~~bash
 cat <<'EOF' | codex exec
-🚨 いま画像生成ツールを実際に呼び出して、青い空と入道雲の画像を1枚生成してほしい。
-   計画や宣言だけで終わらせず、生成したPNGの絶対パスを最後に1行で出力してほしい。
-   ドキュメントは読まなくていい。
+🚨 请立即实际调用图像生成工具，生成一张蓝天和积雨云的图片。
+   不要只做计划或声明；最后请单独输出一行生成 PNG 的绝对路径。
+   不需要阅读文档。
 EOF
-```
+~~~
 
-最後の行に `.../generated_images/<UUID>/xxx.png` のようなパスが出れば準備完了です。
-**宣言だけで終わった場合**は `docs/pitfalls.md` の【罠1】を読んでください（この依頼文はすでに対策済みなので、通常は一発で通ります）。
+若最后一行出现类似 `.../generated_images/<UUID>/xxx.png` 的路径，即配置完成。
+若仅输出声明却没有生成图像，请阅读 docs/pitfalls.md 的【陷阱 1】。
+上面的请求文本已经包含对应措施，通常可一次成功。
 
-生成物の置き場所は既定で `~/.codex/generated_images/` です。違う場所なら環境変数で指定できます:
+生成结果默认保存在 `~/.codex/generated_images/`。如需使用其他位置，可设置环境变量：
 
-```bash
+~~~bash
 export CODEX_IMAGE_DIR="/path/to/generated_images"
-```
+~~~
 
 ## 2. Claude Code
 
-このリポジトリをスキルとして配置します。
+将本仓库放入 Claude Code 的技能目录：
 
-```bash
-# ユーザー全体で使う
+~~~bash
+# 面向当前用户全局使用
 cp -r rimochan-nyamuru-manga-forge ~/.claude/skills/manga-forge
 
-# または特定プロジェクトだけ
+# 或仅用于某个项目
 cp -r rimochan-nyamuru-manga-forge <your-project>/.claude/skills/manga-forge
-```
+~~~
 
-Claude Code を起動して「3ページの漫画を描いて」のように頼めば発動します。
+启动 Claude Code 后，请求“画一部 3 页漫画”之类的需求即可触发。
 
 ## 3. bash
 
-`forge.sh` / `collect.sh` は bash スクリプトです。
+forge.sh / collect.sh 是 bash 脚本。
 
-- macOS / Linux — そのまま動きます
-- **Windows** — Git Bash で動きます（開発環境がこれです）。PowerShell からは
-  `bash ./scripts/forge.sh ...` のように呼んでください
+- macOS / Linux：可直接运行。
+- **Windows**：可在 Git Bash 中运行（本项目的开发环境也是如此）。若从 PowerShell 调用，请使用
+  `bash ./scripts/forge.sh ...`。
 
-実行権限が付いていない場合:
+若脚本没有执行权限：
 
-```bash
+~~~bash
 chmod +x scripts/*.sh
-```
+~~~
 
-## 4. リファレンス画像（任意）
+## 4. 参考图（可选）
 
-キャラの立ち絵を用意すると、そのキャラで描いてくれます。無くてもネームの `materials.note` を手がかりに作画AIが想像で描くので、**無しでも動きます**。
+准备角色立绘后，AI 就能按**该角色**绘制。
+没有参考图也能运行；作画 AI 会根据分镜中的 `materials.note` 自行设计，
+因此**不提供参考图也可用**。
 
-用意する場合は `docs/characters.md` を読んでください。
+如需准备参考图，请阅读 docs/characters.md。
 
-## トラブルシューティング
+## 故障排除
 
-| 症状 | 対処 |
+| 症状 | 处理方法 |
 |---|---|
-| `codex: command not found` | codex CLI が PATH に入っていない。新しいシェルを開くか、フルパスで呼ぶ |
-| `Not inside a trusted directory` | 実行場所が git リポジトリの外（ZIPダウンロードで配置した場合など）。リポジトリ直下で `git init` するか、`git clone` で取得し直す |
-| `No prompt provided via stdin.` | `-i` の後にプロンプトを直書きしている。heredoc で渡す（罠2） |
-| 宣言だけで画像が出ない | 罠1。`forge.sh` は対策済みなので、そのまま再実行してよい |
-| 画像が見つからない | `CODEX_IMAGE_DIR` を確認。`out/<作品名>/forge.log` にパスが出ているはず |
-| 別作品のキャラが混ざる | 罠3。焼いている最中に他の codex を走らせないこと |
+| `codex: command not found` | codex CLI 未加入 PATH。打开新终端，或用完整路径调用。 |
+| `Not inside a trusted directory` | 执行位置不在 git 仓库内（例如通过 ZIP 解压）。在仓库根目录执行 `git init`，或重新用 `git clone` 获取。 |
+| `No prompt provided via stdin.` | 把提示词直接写在 `-i` 后面了。请通过 heredoc 传入（见陷阱 2）。 |
+| 只做声明却没有图像 | 陷阱 1。forge.sh 已包含处理措施，可以直接重新执行。 |
+| 找不到图像 | 检查 `CODEX_IMAGE_DIR`。路径应出现在 `out/<作品名>/forge.log` 中。 |
+| 混入另一部作品的角色 | 陷阱 3。渲染期间不要运行其他 codex 调用。 |
